@@ -1,27 +1,22 @@
 from datetime import datetime
+from fastapi import APIRouter, HTTPException, Request
+from app.data.models import AVAILABLE_MODELS
+from app.schema.root_schema import ChatMessage, StreamingResponse
+from app.schema.stream_response import stream_ai_response_with_images, stream_plain_response
+from app.observability import http_logging, server_logging
 
-from fastapi import APIRouter
+rouRoot = APIRouter()
 
-rouToo = APIRouter()
+@rouRoot.get("/")
+async def root():return {"message": "AI Triage Agent API", "status": "online","version": "2.0"}
 
-@rouToo.get("/")
-async def root():
-    return {
-        "message": "AI Triage Agent API", 
-        "status": "online",
-        "version": "2.0"
-    }
+@rouRoot.get("/health")
+async def health_check():return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-@rouToo.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+@rouRoot.get("/models")
+async def get_models():return AVAILABLE_MODELS
 
-@rouToo.get("/models")
-async def get_models():
-    return AVAILABLE_MODELS
-
-
-@app.post("/chat")
+@rouRoot.post("/chat")
 async def chat_endpoint(chat_message: ChatMessage, request: Request):
     """Chat endpoint using Strands Agent with streaming"""
     try:
@@ -75,6 +70,6 @@ async def chat_endpoint(chat_message: ChatMessage, request: Request):
             )
         
     except Exception as e:
-        logger.error(f"Chat endpoint error: {str(e)}")
-        add_server_log("system", f"Chat error: {str(e)[:50]}...")
+        http_logging.logger.error(f"Chat endpoint error: {str(e)}")
+        server_logging.add_server_log("system", f"Chat error: {str(e)[:50]}...")
         raise HTTPException(status_code=500, detail="Internal server error")

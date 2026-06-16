@@ -1,35 +1,38 @@
+import os, sys, json
 from contextlib import asynccontextmanager
+from app.observability import server_logging, http_logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.observability.http_logging import add_http_logging_middleware
 from app.api import rou
-
+from app.mcps.mcp_main import initialize_mcp_servers
+from data.decisiontree_type import DecisionTree
+import app.globals as g
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize MCP servers and decision tree on startup, cleanup on shutdown"""
-    global decision_tree
 
     # Startup
     try:
         initialize_mcp_servers()
     except Exception as e:
-        logger.error(f"Failed to initialize MCP servers: {e}")
-        add_server_log("system", f"Startup MCP init failed: {str(e)}")
+        http_logging.logger(f"Failed to initialize MCP servers: {str(e)}")
+        server_logging.add_server_log("system", f"Startup MCP init failed: {str(e)}")
 
     # Initialize decision tree
     try:
         tree_file = os.path.join(os.path.dirname(__file__), 'data/dividend_strategy_tree.json')
-        decision_tree = DecisionTree(tree_file)
-        add_server_log("system", f"Decision Tree initialized: {len(decision_tree.nodes)} nodes loaded", level="info")
+        g.decision_tree = DecisionTree(tree_file)
+        server_logging.add_server_log("system", f"Decision Tree initialized: {len(g.decision_tree.nodes)} nodes loaded", level="info")
     except Exception as e:
-        add_server_log("system", f"Decision Tree initialization failed: {str(e)}", level="error")
+        server_logging.add_server_log("system", f"Decision Tree initialization failed: {str(e)}", level="error")
         decision_tree = None
 
     yield
 
     # Shutdown
-    add_server_log("system", "Shutting down MCP servers...")
+    server_logging.add_server_log("system", "Shutting down MCP servers...")
     # Clean shutdown for stdio-based servers happens automatically
 
 

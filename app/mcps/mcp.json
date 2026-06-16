@@ -1,0 +1,36 @@
+{
+    "mcpServers": {
+        "calculator": {
+            "transport": "agentcore",
+            "runtime_arn": "arn:aws:bedrock-agentcore:us-east-1:822206589627:runtime/mcp1_Cal-3WVTZZ55XO",
+            "region": "us-east-1",
+            "enabled": true
+        },
+        "weather": {
+            "transport": "agentcore",
+            "runtime_arn": "arn:aws:bedrock-agentcore:us-east-1:822206589627:runtime/mcp2_Weather-a7ZoanFkS0",
+            "region": "us-east-1",
+            "enabled": true
+        },
+        "task_manager": {
+            "transport": "agentcore",
+            "runtime_arn": "arn:aws:bedrock-agentcore:us-east-1:822206589627:runtime/mcp4_Task-nmaGy55hAz",
+            "region": "us-east-1",
+            "enabled": true
+        },
+        "calendar": {
+            "command": "python",
+            "args": [
+                "mcp_servers/calendar/calendar_server.py"
+            ],
+            "enabled": true
+        },
+        "email_history": {
+            "command": "python",
+            "args": [
+                "mcp_servers/email_history/email_history_server.py"
+            ],
+            "enabled": true
+        }
+    }
+}
