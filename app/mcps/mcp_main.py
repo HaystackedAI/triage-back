@@ -2,12 +2,12 @@ import os,json
 from app.observability import server_logging, http_logging
 from strands.tools.mcp import MCPClient
 from mcp import StdioServerParameters, stdio_client
+import app.globals as g
 
 def setup_mcp_servers():
     """Setup MCP servers using stdio transport"""
-    global mcp_clients
     
-    for server_name, server_config in mcp_servers.items():
+    for server_name, server_config in g.mcp_servers.items():
         if not server_config.get("enabled", True):
             server_logging.add_server_log(server_name, "Server disabled, skipping")
             continue
@@ -43,20 +43,19 @@ def setup_mcp_servers():
                 )
             )
             
-            mcp_clients[server_name] = mcp_client
-            mcp_servers[server_name]["status"] = "ready"
+            g.mcp_clients[server_name] = mcp_client
+            g.mcp_servers[server_name]["status"] = "ready"
             server_logging.add_server_log(server_name, "MCP server ready")
                 
         except Exception as e:
             server_logging.add_server_log(server_name, f"Setup error: {str(e)}")
-            mcp_servers[server_name]["status"] = "error"
+            g.mcp_servers[server_name]["status"] = "error"
 
 
 def load_mcp_config():
     """Load MCP configuration from mcp.json file"""
-    global mcp_servers
-    if mcp_servers:  # Already loaded
-        return mcp_servers
+    if g.mcp_servers:  # Already loaded
+        return g.mcp_servers
         
     try:
         config_path = os.path.join(os.path.dirname(__file__), 'mcp.json')
@@ -64,13 +63,13 @@ def load_mcp_config():
             config = json.load(f)
             
         # Transform config to our internal format
-        mcp_servers = {}
+        g.mcp_servers = {}
         
         # Check for both 'servers' and 'mcpServers' keys for compatibility
         servers_config = config.get('mcpServers', config.get('servers', {}))
         
         for server_name, server_config in servers_config.items():
-            mcp_servers[server_name] = {
+            g.mcp_servers[server_name] = {
                 "name": server_config.get("name", server_name.replace('_', ' ').title()),
                 "enabled": server_config.get("enabled", True),
                 "description": server_config.get("description", f"{server_name.replace('_', ' ').title()} MCP server"),
@@ -80,8 +79,8 @@ def load_mcp_config():
                 "env": server_config.get("env", {})
             }
         
-        server_logging.add_server_log("system", f"Loaded {len(mcp_servers)} MCP servers")
-        return mcp_servers
+        server_logging.add_server_log("system", f"Loaded {len(g.mcp_servers)} MCP servers")
+        return g.mcp_servers
         
     except Exception as e:
         http_logging.log_error(f"Error loading MCP config: {str(e)}")

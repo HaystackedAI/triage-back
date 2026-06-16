@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.observability.http_logging import add_http_logging_middleware
 from app.api import rou
 from app.mcps.mcp_main import initialize_mcp_servers
-from data.decisiontree_type import DecisionTree
+from app.data.decisiontree_type import DecisionTree
 import app.globals as g
 
 @asynccontextmanager

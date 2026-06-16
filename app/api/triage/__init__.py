@@ -3,11 +3,11 @@ from fastapi import APIRouter, HTTPException
 from app.observability import server_logging, http_logging
 import  app.globals as g 
 
-rouBI = APIRouter()
+rouTriage = APIRouter()
 
 
 # Decision Tree Graph and Triage APIs
-@rouBI.get("/api/decision-tree")
+@rouTriage.get("/api/decision-tree")
 async def get_decision_tree():
     """Get the decision tree structure for visualization"""
     try:
@@ -36,7 +36,7 @@ async def get_decision_tree():
         server_logging.server_logging.add_server_log("triage", f"Error getting decision tree: {str(e)}", level="error")
         raise HTTPException(status_code=500, detail="Failed to retrieve decision tree")
 
-@rouBI.get("/api/triage/session/{session_id}")
+@rouTriage.get("/api/triage/session/{session_id}")
 async def get_triage_session_state(session_id: str):
     """Get the current state of a triage session"""
     try:
@@ -98,7 +98,7 @@ async def get_triage_session_state(session_id: str):
         server_logging.add_server_log("triage", f"Error getting triage session: {str(e)}", level="error")
         raise HTTPException(status_code=500, detail="Failed to retrieve triage session")
 
-@rouBI.get("/api/triage/status")
+@rouTriage.get("/api/triage/status")
 async def get_triage_system_status():
     """Get the status of the AI Triage Agent system"""
     try:
