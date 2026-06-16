@@ -33,7 +33,7 @@ async def get_decision_tree():
         }
         
     except Exception as e:
-        server_logging.server_logging.add_server_log("triage", f"Error getting decision tree: {str(e)}", level="error")
+        server_logging.add_server_log("triage", f"Error getting decision tree: {str(e)}", level="error")
         raise HTTPException(status_code=500, detail="Failed to retrieve decision tree")
 
 @rouTriage.get("/api/triage/session/{session_id}")

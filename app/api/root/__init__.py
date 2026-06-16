@@ -7,14 +7,20 @@ from app.observability import http_logging, server_logging
 
 rouRoot = APIRouter()
 
+
 @rouRoot.get("/")
-async def root():return {"message": "AI Triage Agent API", "status": "online","version": "2.0"}
+async def root(): return {"message": "AI Triage Agent API",
+                          "status": "online", "version": "2.0"}
+
 
 @rouRoot.get("/health")
-async def health_check():return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+async def health_check(): return {
+    "status": "healthy", "timestamp": datetime.now().isoformat()}
+
 
 @rouRoot.get("/models")
-async def get_models():return AVAILABLE_MODELS
+async def get_models(): return AVAILABLE_MODELS
+
 
 @rouRoot.post("/chat")
 async def chat_endpoint(chat_message: ChatMessage, request: Request):
@@ -31,8 +37,8 @@ async def chat_endpoint(chat_message: ChatMessage, request: Request):
             # Return SSE streaming response
             return StreamingResponse(
                 stream_ai_response_with_images(
-                    chat_message.message, 
-                    chat_message.model_id, 
+                    chat_message.message,
+                    chat_message.model_id,
                     chat_message.session_id,
                     chat_message.images,
                     chat_message.history
@@ -48,15 +54,16 @@ async def chat_endpoint(chat_message: ChatMessage, request: Request):
         elif "text/plain" in accept_header:
             # Return plain text streaming
             return StreamingResponse(
-                stream_plain_response(chat_message.message, chat_message.model_id),
+                stream_plain_response(
+                    chat_message.message, chat_message.model_id),
                 media_type="text/plain"
             )
         else:
             # Default SSE streaming
             return StreamingResponse(
                 stream_ai_response_with_images(
-                    chat_message.message, 
-                    chat_message.model_id, 
+                    chat_message.message,
+                    chat_message.model_id,
                     chat_message.session_id,
                     chat_message.images,
                     chat_message.history
@@ -68,8 +75,9 @@ async def chat_endpoint(chat_message: ChatMessage, request: Request):
                     "Access-Control-Allow-Origin": "*",
                 }
             )
-        
+
     except Exception as e:
         http_logging.logger.error(f"Chat endpoint error: {str(e)}")
-        server_logging.add_server_log("system", f"Chat error: {str(e)[:50]}...")
+        server_logging.add_server_log(
+            "system", f"Chat error: {str(e)[:50]}...")
         raise HTTPException(status_code=500, detail="Internal server error")
