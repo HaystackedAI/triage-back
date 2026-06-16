@@ -1,40 +1,8 @@
-"""
-AI Triage Agent - Backend
-Real Strands Agent integration with MCP servers
-"""
-
-import os
-import json
-import logging
-import asyncio
-from datetime import datetime
-from dataclasses import dataclass, asdict, field
-import re
-
-# Strands imports
-from strands import Agent
-from strands.models import BedrockModel
-from strands.tools.mcp import MCPClient
-from mcp import StdioServerParameters, stdio_client
-from mcpmanager import mcp_manager
-
-from observability.server_logging import add_server_log
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Store server logs
-mcp_servers = {}  # Initialize early to avoid loading issues
-mcp_clients = {}  # Store MCP client instances
-
-
-# Global agent cache - session-based
-session_agents = {}
-
-# Global tools cache
-cached_tools = []
-tools_last_updated = None
 
 # Session token tracking
 session_token_usage = {}  # session_id -> {"total_input": int, "total_output": int}
@@ -51,72 +19,6 @@ add_server_log("system", f"MCP Manager initialized with clients: {mcp_manager.ge
 refresh_tools_cache()
 
 
-def get_session_messages_for_ui(session_id: str, model_id: str) -> List[Dict]:
-    """Get session messages formatted for UI from the actual agent"""
-    agent_key = f"{session_id}:{model_id}"
-    
-    if agent_key not in session_agents:
-        return []
-    
-    agent = session_agents[agent_key]
-    
-    # Get messages from agent.messages
-    if not hasattr(agent, 'messages') or not agent.messages:
-        return []
-    
-    ui_messages = []
-    
-    for msg in agent.messages:
-        # Skip system messages
-        if msg.get('role') == 'system':
-            continue
-            
-        # Convert Strands message format to UI format
-        if msg.get('role') in ['user', 'assistant']:
-            message_content = ""
-            
-            # Extract content from Strands message format
-            content = msg.get('content', [])
-            if isinstance(content, str):
-                message_content = content
-            elif isinstance(content, list):
-                text_parts = []
-                for content_item in content:
-                    if isinstance(content_item, dict):
-                        if 'text' in content_item:
-                            text_parts.append(content_item['text'])
-                        elif 'toolUse' in content_item:
-                            tool_use = content_item['toolUse']
-                            text_parts.append(f"🔧 Used tool: {tool_use.get('name', 'unknown')}")
-                        elif 'toolResult' in content_item:
-                            tool_result = content_item['toolResult']
-                            if 'content' in tool_result and tool_result['content']:
-                                result_text = tool_result['content'][0].get('text', '') if tool_result['content'] else ''
-                                text_parts.append(f"✅ Result: {result_text[:100]}...")
-                    else:
-                        text_parts.append(str(content_item))
-                message_content = "\n".join(text_parts)
-            
-            ui_messages.append({
-                "id": len(ui_messages) + 1,
-                "role": msg['role'],
-                "content": message_content,
-                "timestamp": datetime.now().isoformat(),  # We don't have original timestamp
-                "model": model_id if msg['role'] == 'assistant' else None
-            })
-    
-    return ui_messages
-
-def refresh_agents():
-    """Refresh tools cache and clear agent cache"""
-    global session_agents
-    
-    # Refresh tools cache first
-    refresh_tools_cache()
-    
-    # Clear agent cache so they get recreated with new tools
-    session_agents.clear()
-    add_server_log("system", "Tools and agent cache refreshed - agents will recreate with new tools", level="info", details={"cleared_sessions": len(session_agents)})
 
 
 def estimate_tokens(text: str) -> int:

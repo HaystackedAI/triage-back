@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-
-from . import r_coa, r_health, r_journal_entries, r_periods, r_reports, r_transaction
+from app.observability import server_logging, http_logging
+from app.sessions import get_session_messages_for_ui
 
 rouAcc = APIRouter()
 
-@app.delete("/sessions/{session_id}")
+@rouAcc.delete("/sessions/{session_id}")
 async def clear_session(session_id: str):
     """Clear a specific session's agent and triage session"""
     global session_agents, decision_tree
@@ -17,12 +17,12 @@ async def clear_session(session_id: str):
     # Remove triage session if exists
     if decision_tree and session_id in decision_tree.conversations:
         del decision_tree.conversations[session_id]
-        add_server_log("triage", f"Cleared triage session: {session_id}")
+        server_logging.add_server_log("triage", f"Cleared triage session: {session_id}")
     
-    add_server_log("system", f"Cleared session: {session_id}")
+    server_logging.add_server_log("system", f"Cleared session: {session_id}")
     return {"message": f"Session {session_id} cleared", "status": "success"}
 
-@app.get("/sessions")
+@rouAcc.get("/sessions")
 async def get_sessions():
     """Get all active sessions"""
     sessions = {}
@@ -34,7 +34,7 @@ async def get_sessions():
     
     return {"sessions": sessions, "count": len(sessions)}
 
-@app.get("/sessions/{session_id}/history")
+@rouAcc.get("/sessions/{session_id}/history")
 async def get_session_history(session_id: str, model_id: str = "us.anthropic.claude-sonnet-4-20250514-v1:0"):
     """Get message history for a specific session"""
     
@@ -46,7 +46,7 @@ async def get_session_history(session_id: str, model_id: str = "us.anthropic.cla
         agent_key = f"{session_id}:{model_id}"
         exists = agent_key in session_agents
         
-        add_server_log("system", f"Session history request: {session_id} - Found {len(messages)} messages, exists: {exists}")
+        server_logging.add_server_log("system", f"Session history request: {session_id} - Found {len(messages)} messages, exists: {exists}")
         
         return {
             "messages": messages,
@@ -57,6 +57,6 @@ async def get_session_history(session_id: str, model_id: str = "us.anthropic.cla
         }
         
     except Exception as e:
-        add_server_log("system", f"Error getting session history: {str(e)}")
+        server_logging.add_server_log("system", f"Error getting session history: {str(e)}")
         return {"messages": [], "session_id": session_id, "exists": False, "error": "Failed to retrieve session history"}
 

@@ -1,22 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from .bi_rag import biRagRou
+from app.observability import server_logging, http_logging
+import  app.globals as g 
 
 rouBI = APIRouter()
-rouBI.include_router(biRagRou, tags=["bi-rag"])
 
 
 # Decision Tree Graph and Triage APIs
-@app.get("/api/decision-tree")
+@rouBI.get("/api/decision-tree")
 async def get_decision_tree():
     """Get the decision tree structure for visualization"""
     try:
-        tree_file = os.path.join(os.path.dirname(__file__), 'data/dividend_strategy_tree.json')
-        decision_tree = DecisionTree(tree_file)
         
         # Convert decision tree to JSON-serializable format
         tree_data = {}
-        for node_id, node in decision_tree.nodes.items():
+        for node_id, node in g.decision_tree.nodes.items():
             tree_data[node_id] = {
                 "id": node.id,
                 "topic": node.topic,
@@ -35,36 +33,35 @@ async def get_decision_tree():
         }
         
     except Exception as e:
-        add_server_log("triage", f"Error getting decision tree: {str(e)}", level="error")
+        server_logging.server_logging.add_server_log("triage", f"Error getting decision tree: {str(e)}", level="error")
         raise HTTPException(status_code=500, detail="Failed to retrieve decision tree")
 
-@app.get("/api/triage/session/{session_id}")
+@rouBI.get("/api/triage/session/{session_id}")
 async def get_triage_session_state(session_id: str):
     """Get the current state of a triage session"""
     try:
-        global decision_tree
-        add_server_log("triage", f"Session state requested: {session_id}", level="info")
+        server_logging.add_server_log("triage", f"Session state requested: {session_id}", level="info")
         
-        if not decision_tree:
-            add_server_log("triage", "Decision tree not initialized for session request", level="warning")
+        if not g.decision_tree:
+            server_logging.add_server_log("triage", "Decision tree not initialized for session request", level="warning")
             return {"error": "Decision tree not initialized"}
         
-        if session_id not in decision_tree.conversations:
-            add_server_log("triage", f"Session not found: {session_id}", level="info")
+        if session_id not in g.decision_tree.conversations:
+            server_logging.add_server_log("triage", f"Session not found: {session_id}", level="info")
             return {
                 "session_id": session_id,
                 "exists": False,
                 "message": "Session not found"
             }
         
-        session_state = decision_tree.conversations[session_id]
-        current_node = decision_tree.nodes.get(session_state.current_node_id)
+        session_state = g.decision_tree.conversations[session_id]
+        current_node = g.decision_tree.nodes.get(session_state.current_node_id)
         
         if not current_node:
-            add_server_log("triage", f"Invalid session state for {session_id}: node {session_state.current_node_id} not found", level="error")
+            server_logging.add_server_log("triage", f"Invalid session state for {session_id}: node {session_state.current_node_id} not found", level="error")
             raise HTTPException(status_code=500, detail="Invalid session state")
         
-        add_server_log("triage", f"SESSION STATE API: {session_id} at node {current_node.id}", level="info", details={
+        server_logging.add_server_log("triage", f"SESSION STATE API: {session_id} at node {current_node.id}", level="info", details={
             "session_id": session_id,
             "current_node": current_node.id,
             "current_topic": current_node.topic,
@@ -98,17 +95,17 @@ async def get_triage_session_state(session_id: str):
         }
         
     except Exception as e:
-        add_server_log("triage", f"Error getting triage session: {str(e)}", level="error")
+        server_logging.add_server_log("triage", f"Error getting triage session: {str(e)}", level="error")
         raise HTTPException(status_code=500, detail="Failed to retrieve triage session")
 
-@app.get("/api/triage/status")
+@rouBI.get("/api/triage/status")
 async def get_triage_system_status():
     """Get the status of the AI Triage Agent system"""
     try:
         global decision_tree
 
         if not decision_tree:
-            add_server_log("triage", "Decision tree not initialized", level="warning")
+            server_logging.add_server_log("triage", "Decision tree not initialized", level="warning")
             return {
                 "status": "offline",
                 "message": "Decision tree not initialized",
@@ -136,7 +133,7 @@ async def get_triage_system_status():
         }
         
     except Exception as e:
-        add_server_log("triage", f"Triage system error: {str(e)}", level="error")
+        server_logging.add_server_log("triage", f"Triage system error: {str(e)}", level="error")
         return {
             "status": "offline", 
             "message": "Triage system unavailable",

@@ -1,16 +1,13 @@
 from fastapi import APIRouter
-from .inv2_invoices import inv2Rou 
-from .inv1_home import homeRou
+from app.agents import refresh_agents
+from app import agents
+agentsRou = APIRouter()
 
-from .settings import settingsRou
-
-invRou = APIRouter()
-
-@app.get("/agents/status")
+@agentsRou.get("/agents/status")
 async def get_agents_status():
     """Get cached session agents status"""
     agents_info = {}
-    for agent_key, agent in session_agents.items():
+    for agent_key, agent in agents.items():
         session_id, model_id = agent_key.split(":", 1)
         agents_info[agent_key] = {
             "session_id": session_id,
@@ -21,10 +18,10 @@ async def get_agents_status():
     
     return {
         "session_agents": agents_info,
-        "count": len(session_agents)
+        "count": len(agents)
     }
 
-@app.post("/agents/refresh")
+@agentsRou.post("/agents/refresh")
 async def refresh_agents_endpoint():
     """Refresh all cached agents"""
     refresh_agents()

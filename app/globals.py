@@ -1,5 +1,8 @@
+from typing import Dict, List
+from datetime import datetime
+from app.observability import server_logging
 from app.data.decisiontree_type import DecisionTree
-
+from app.mcps.mcpmanager import mcp_manager
 # initialized during startup
 decision_tree: DecisionTree | None = None
 
@@ -12,3 +15,31 @@ tools_last_updated = None
 
 # token usage
 session_token_usage = {}
+
+
+# Store server logs
+mcp_servers = {}  # Initialize early to avoid loading issues
+mcp_clients = {}  # Store MCP client instances
+server_logs: Dict[str, List[str]] = {}
+    
+def refresh_tools_cache():
+    """Refresh the global tools cache"""
+    global cached_tools, tools_last_updated
+    
+    try:
+        cached_tools = mcp_manager.get_all_tools(active_only=True)
+        tools_last_updated = datetime.now()
+        server_logging.add_server_log("system", f"Tools cache refreshed: {len(cached_tools)} tools loaded", level="info", details={"tool_count": len(cached_tools)})
+    except Exception as e:
+        server_logging.add_server_log("system", f"Error refreshing tools cache: {str(e)}", level="error", details={"error": str(e)})
+        cached_tools = []
+
+
+def get_cached_tools():
+    """Get cached tools, refresh if empty"""
+    global cached_tools
+    
+    if not cached_tools:
+        refresh_tools_cache()
+    
+    return cached_tools
