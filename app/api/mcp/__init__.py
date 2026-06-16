@@ -44,7 +44,8 @@ async def toggle_mcp_server(server_name: str, request: ToggleRequest):
 
 @rouMcp.get("/mcp/logs")
 async def get_mcp_logs():
-    return g.server_logs
+    # return g.server_logs
+    return None
 
 @rouMcp.delete("/mcp/logs")
 async def clear_mcp_logs():
