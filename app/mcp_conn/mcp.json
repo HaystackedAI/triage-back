@@ -21,18 +21,20 @@
         "calendar": {
             "command": "python",
             "args": [
-                "mcp_servers/calendar/calendar_server.py"
+                "app/mcp_local/calendar/calendar_server.py"
             ],
-            "enabled": false,
-            "note": "Local stdio server - not yet implemented"
+            "enabled": true,
+            "transport": "stdio",
+            "description": "Calendar server with date/time and event management tools"
         },
-        "email_history": {
+        "static": {
             "command": "python",
             "args": [
-                "mcp_servers/email_history/email_history_server.py"
+                "app/mcp_local/static/static.py"
             ],
-            "enabled": false,
-            "note": "Local stdio server - not yet implemented"
+            "enabled": true,
+            "transport": "stdio",
+            "description": "Static response test server with read/write tools"
         }
     }
 }

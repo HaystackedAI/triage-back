@@ -72,11 +72,10 @@ def get_or_create_session_agent(session_id: str, model_id: str) -> Agent:
 
 def refresh_agents():
     """Refresh tools cache and clear agent cache"""
-    global session_agents
     
     # Refresh tools cache first
     refresh_tools_cache()
     
     # Clear agent cache so they get recreated with new tools
-    session_agents.clear()
+    g.session_agents.clear()
     server_logging.add_server_log("system", "Tools and agent cache refreshed - agents will recreate with new tools", level="info", details={"cleared_sessions": len(session_agents)})

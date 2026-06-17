@@ -86,12 +86,15 @@ class MCPClientManager:
                     args = server_config.get("args", [])
 
                     # Create MCPClient with lambda function as per Strands docs
+                    # Set cwd to project root (two levels up from this file)
+                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+
                     mcp_client = MCPClient(
-                        lambda cmd=command, arguments=args: stdio_client(
+                        lambda cmd=command, arguments=args, root=project_root: stdio_client(
                             StdioServerParameters(
                                 command=cmd,
                                 args=arguments,
-                                cwd=os.path.dirname(__file__),
+                                cwd=root,
                                 env=os.environ,
                             )
                         )
