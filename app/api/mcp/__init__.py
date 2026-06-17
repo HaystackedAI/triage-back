@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from fastapi import HTTPException
-from app.mcps import mcp_main
+from app.mcp_conn import mcp_main
 from app.mcp_conn.mcpmanager import mcp_manager
 from app.agents.triage_agent import refresh_agents
 from app.observability import server_logging, http_logging

@@ -25,13 +25,20 @@ server_logs: Dict[str, List[str]] = {}
 def refresh_tools_cache():
     """Refresh the global tools cache"""
     global cached_tools, tools_last_updated
-    
+
     try:
+        server_logging.add_server_log("system", "Attempting to get tools from mcp_manager...", level="info")
+        active_clients = mcp_manager.get_active_clients()
+        server_logging.add_server_log("system", f"Active MCP clients: {active_clients}", level="info")
+
         cached_tools = mcp_manager.get_all_tools(active_only=True)
         tools_last_updated = datetime.now()
-        server_logging.add_server_log("system", f"Tools cache refreshed: {len(cached_tools)} tools loaded", level="info", details={"tool_count": len(cached_tools)})
+        tool_names = [getattr(tool, 'name', str(tool)) for tool in cached_tools]
+        server_logging.add_server_log("system", f"Tools cache refreshed: {len(cached_tools)} tools - {tool_names}", level="info", details={"tool_count": len(cached_tools), "tool_names": tool_names})
     except Exception as e:
-        server_logging.add_server_log("system", f"Error refreshing tools cache: {str(e)}", level="error", details={"error": str(e)})
+        import traceback
+        error_detail = traceback.format_exc()
+        server_logging.add_server_log("system", f"Error refreshing tools cache: {str(e)}", level="error", details={"error": str(e), "traceback": error_detail})
         cached_tools = []
 
 

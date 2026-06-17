@@ -32,6 +32,10 @@ async def lifespan(app: FastAPI):
         initialize_mcp_servers()
         mcp_manager.initialize_default_clients()
         server_logging.add_server_log("system", "MCP clients initialized", level="info")
+
+        # Refresh tools cache after MCP initialization
+        g.refresh_tools_cache()
+        server_logging.add_server_log("system", f"Initial tools cache loaded: {len(g.cached_tools)} tools", level="info")
     except Exception as e:
         http_logging.logger(f"Failed to initialize MCP servers: {str(e)}")
         server_logging.add_server_log("system", f"Startup MCP init failed: {str(e)}", level="error")
