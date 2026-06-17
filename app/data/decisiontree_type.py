@@ -6,10 +6,6 @@ from dataclasses import dataclass, asdict, field
 
 from app.observability import http_logging, server_logging
 
-
-# Global decision tree instance
-decision_tree = None
-
 # --- Start of Inlined Decision Tree Logic ---
 
 @dataclass

@@ -102,9 +102,7 @@ async def get_triage_session_state(session_id: str):
 async def get_triage_system_status():
     """Get the status of the AI Triage Agent system"""
     try:
-        global decision_tree
-
-        if not decision_tree:
+        if not g.decision_tree:
             server_logging.add_server_log("triage", "Decision tree not initialized", level="warning")
             return {
                 "status": "offline",
@@ -115,7 +113,7 @@ async def get_triage_system_status():
 
         # Convert decision tree to JSON-serializable format for visualization
         tree_data = {}
-        for node_id, node in decision_tree.nodes.items():
+        for node_id, node in g.decision_tree.nodes.items():
             tree_data[node_id] = {
                 "id": node.id,
                 "topic": node.topic,
@@ -127,7 +125,7 @@ async def get_triage_system_status():
 
         return {
             "status": "online",
-            "nodes_loaded": len(decision_tree.nodes) if decision_tree.nodes else 0,
+            "nodes_loaded": len(g.decision_tree.nodes) if g.decision_tree.nodes else 0,
             "tree": {"nodes": tree_data},
             "message": "AI Triage Agent system ready"
         }
