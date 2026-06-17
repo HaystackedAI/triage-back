@@ -33,7 +33,7 @@ def refresh_tools_cache():
 
         cached_tools = mcp_manager.get_all_tools(active_only=True)
         tools_last_updated = datetime.now()
-        tool_names = [getattr(tool, 'name', str(tool)) for tool in cached_tools]
+        tool_names = [getattr(tool, 'tool_name', str(type(tool).__name__)) for tool in cached_tools]
         server_logging.add_server_log("system", f"Tools cache refreshed: {len(cached_tools)} tools - {tool_names}", level="info", details={"tool_count": len(cached_tools), "tool_names": tool_names})
     except Exception as e:
         import traceback

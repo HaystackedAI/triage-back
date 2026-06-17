@@ -38,7 +38,7 @@ def get_or_create_session_agent(session_id: str, model_id: str) -> Agent:
     if agent_key not in g.session_agents:
         model = BedrockModel(model_id=model_id, temperature=0.7)
         tools = get_cached_tools()
-        tool_names = [getattr(tool, 'name', str(tool)) for tool in tools]
+        tool_names = [getattr(tool, 'tool_name', str(type(tool).__name__)) for tool in tools]
         server_logging.add_server_log(func_name, f"Tools loaded: {len(tools)} tools - {tool_names}", level="info")
         
         # General purpose prompt. Specific instructions will be provided in each call.
