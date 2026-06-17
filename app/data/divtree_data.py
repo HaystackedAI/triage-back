@@ -1,0 +1,271 @@
+# Decision Tree Data - Dividend Investment Strategy
+# Converted from divtree.json for reliable importing
+
+DECISION_TREE_DATA = {
+    "nodes": {
+        "start": {
+            "id": "start",
+            "topic": "Dividend Investment Strategy Assistant",
+            "question": "Welcome to the Dividend Investment Strategy Assistant! I'll help you build a dividend portfolio strategy. What's your main goal?",
+            "ui_display": "💰 **Dividend Investment Strategy Assistant** - Let's build your dividend portfolio strategy!",
+            "response_options": [
+                "Generate passive income now",
+                "Build wealth for retirement",
+                "Balance growth and income",
+                "Learn about dividend investing",
+                "I already have a portfolio to review"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Different goals require different strategies. Income-focused needs high-yield dividends, growth needs dividend growth stocks, retirement needs tax-advantaged accounts.",
+            "additional_reasoning": "Understanding investment timeframe and goals is critical for strategy selection.",
+            "required": True,
+            "dependencies": [],
+            "children": [
+                "timeframe_assessment",
+                "learning_path"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "timeframe_assessment": {
+            "id": "timeframe_assessment",
+            "topic": "Investment Timeframe",
+            "question": "What is your investment timeframe? This helps determine the right strategy for you.",
+            "ui_display": "⏰ **Investment Timeframe** - When do you need to access this money?",
+            "response_options": [
+                "Less than 5 years",
+                "5-10 years",
+                "10-20 years",
+                "20+ years (retirement)",
+                "No specific timeframe"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Short timeframe (< 5 years) requires conservative high-yield strategy. Long timeframe allows for dividend growth strategy. Retirement timeframe prioritizes tax-advantaged accounts.",
+            "additional_reasoning": "Timeframe determines risk tolerance and account type selection.",
+            "required": True,
+            "dependencies": [],
+            "children": [
+                "risk_assessment"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "risk_assessment": {
+            "id": "risk_assessment",
+            "topic": "Risk Tolerance",
+            "question": "How do you feel about investment risk?",
+            "ui_display": "📊 **Risk Tolerance Assessment**",
+            "response_options": [
+                "Very conservative - I want stable, reliable dividends even if lower",
+                "Conservative - Prefer established companies with steady dividends",
+                "Moderate - Balance between stability and growth",
+                "Aggressive - Accept volatility for higher dividend growth potential",
+                "I'm not sure - help me decide"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Risk tolerance determines stock selection: conservative = dividend aristocrats, moderate = dividend growth stocks, aggressive = high-yield with growth potential.",
+            "additional_reasoning": "Risk affects both yield targets and portfolio composition.",
+            "required": True,
+            "dependencies": [],
+            "children": [
+                "account_type_selection"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "account_type_selection": {
+            "id": "account_type_selection",
+            "topic": "Tax-Advantaged Account Selection",
+            "question": "Which type of tax-advantaged account interests you? (This can significantly impact your returns)",
+            "ui_display": "🏦 **Account Type Selection** - Tax efficiency is crucial for dividend investing!",
+            "response_options": [
+                "Roth IRA - Tax-free growth and withdrawals (US)",
+                "Traditional IRA - Tax-deferred growth (US)",
+                "TFSA - Tax-Free Savings Account (Canada)",
+                "401(k)/403(b) - Employer-sponsored retirement",
+                "Regular taxable brokerage account",
+                "I need help choosing the right account"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Tax-free accounts (Roth IRA, TFSA) are ideal for dividend investing since dividends compound tax-free. Traditional IRA defers taxes. Taxable accounts face dividend tax but offer flexibility.",
+            "additional_reasoning": "Account type determines tax treatment of dividends and affects net returns significantly.",
+            "required": True,
+            "dependencies": [],
+            "children": [
+                "investment_amount"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "investment_amount": {
+            "id": "investment_amount",
+            "topic": "Investment Capital",
+            "question": "How much are you planning to invest initially?",
+            "ui_display": "💵 **Investment Capital** - What's your starting amount?",
+            "response_options": [
+                "Under $1,000",
+                "$1,000 - $5,000",
+                "$5,000 - $25,000",
+                "$25,000 - $100,000",
+                "Over $100,000",
+                "I'll invest monthly over time"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Investment amount affects diversification strategy. Smaller amounts may need ETFs, larger amounts can diversify with individual stocks. Monthly investing benefits from dollar-cost averaging.",
+            "additional_reasoning": "Account minimums and diversification requirements depend on capital available.",
+            "required": True,
+            "dependencies": [],
+            "children": [
+                "strategy_recommendation"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "strategy_recommendation": {
+            "id": "strategy_recommendation",
+            "topic": "Your Personalized Dividend Strategy",
+            "question": "Based on your responses, here's your recommended dividend investment strategy. Would you like to proceed with this plan?",
+            "ui_display": "✅ **Your Personalized Strategy**",
+            "response_options": [
+                "Yes, show me next steps",
+                "Tell me more about this strategy",
+                "I want to adjust my answers",
+                "Show me example portfolio allocations"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Synthesize all previous answers to recommend: 1) Specific dividend strategy (high-yield, dividend growth, or balanced), 2) Account type prioritization, 3) Suggested allocation percentages, 4) Example stocks/ETFs.",
+            "additional_reasoning": "Strategy must align with goals, timeframe, risk tolerance, account type, and capital.",
+            "required": True,
+            "dependencies": [
+                "timeframe_assessment",
+                "risk_assessment",
+                "account_type_selection",
+                "investment_amount"
+            ],
+            "children": [
+                "action_plan",
+                "portfolio_examples"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "portfolio_examples": {
+            "id": "portfolio_examples",
+            "topic": "Example Portfolio Allocations",
+            "question": "Here are example portfolio allocations based on your strategy. Which would you like to explore?",
+            "ui_display": "📈 **Example Portfolio Allocations**",
+            "response_options": [
+                "Show conservative dividend aristocrats portfolio",
+                "Show dividend growth portfolio",
+                "Show high-yield income portfolio",
+                "Show balanced dividend portfolio",
+                "Show dividend ETF portfolio"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Provide specific ticker examples with allocation percentages based on user's risk profile and goals.",
+            "additional_reasoning": "Examples should be actionable with real tickers and allocation percentages.",
+            "required": False,
+            "dependencies": [
+                "strategy_recommendation"
+            ],
+            "children": [
+                "action_plan"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "action_plan": {
+            "id": "action_plan",
+            "topic": "Action Plan - Next Steps",
+            "question": "Here's your personalized action plan to get started. What would you like to do next?",
+            "ui_display": "✅ **Your Action Plan**",
+            "response_options": [
+                "Add tasks to my task manager",
+                "Calculate potential dividend income",
+                "Schedule account opening reminder",
+                "Get dividend calendar dates",
+                "Review strategy again",
+                "Start over with different parameters"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Provide concrete next steps: 1) Open tax-advantaged account, 2) Set up automatic contributions, 3) Research recommended stocks/ETFs, 4) Make first investment, 5) Set up dividend reinvestment.",
+            "additional_reasoning": "Action plan should be specific and immediately actionable with MCP tool integration.",
+            "required": True,
+            "dependencies": [
+                "strategy_recommendation"
+            ],
+            "children": [
+                "tool_integration"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "tool_integration": {
+            "id": "tool_integration",
+            "topic": "Tool Integration",
+            "question": "I can help you with calculations, task management, and scheduling. What would you like to do?",
+            "ui_display": "🛠️ **Tools & Calculators**",
+            "response_options": [
+                "Calculate dividend yield on my investment",
+                "Calculate compound growth projections",
+                "Add investment tasks to my task list",
+                "Set calendar reminders for quarterly dividends",
+                "Calculate tax savings in tax-free account",
+                "I'm all set, thank you!"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Use MCP tools: calculator for yield/growth calculations, task_manager for action items, calendar for dividend payment dates and account opening reminders.",
+            "additional_reasoning": "This demonstrates the power of MCP tool integration for practical financial planning.",
+            "required": False,
+            "dependencies": [],
+            "children": [
+                "completion"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "learning_path": {
+            "id": "learning_path",
+            "topic": "Learn About Dividend Investing",
+            "question": "What aspect of dividend investing would you like to learn about?",
+            "ui_display": "📚 **Dividend Investing Education**",
+            "response_options": [
+                "What are dividends and how do they work?",
+                "Tax-free vs taxable accounts for dividends",
+                "Dividend yield vs dividend growth",
+                "Dividend aristocrats and kings",
+                "DRIP - Dividend Reinvestment Plans",
+                "I'm ready to start planning my strategy"
+            ],
+            "should_reason": True,
+            "reasoning_rules": "Provide educational content based on selection, then guide user back to strategy planning.",
+            "additional_reasoning": "Education helps users make informed decisions about their dividend strategy.",
+            "required": False,
+            "dependencies": [],
+            "children": [
+                "timeframe_assessment"
+            ],
+            "is_terminal": False,
+            "outcome": None
+        },
+        "completion": {
+            "id": "completion",
+            "topic": "Strategy Complete",
+            "question": "You're all set! Your dividend investment strategy is ready. Remember: start early, invest consistently, and let compound growth work for you. Good luck! 🚀",
+            "ui_display": "🎉 **Congratulations!** Your dividend strategy is ready!",
+            "response_options": [
+                "Start over with new strategy",
+                "Review my strategy summary",
+                "Exit"
+            ],
+            "should_reason": False,
+            "reasoning_rules": "",
+            "additional_reasoning": "",
+            "required": False,
+            "dependencies": [],
+            "children": [],
+            "is_terminal": True,
+            "outcome": "Dividend investment strategy planning completed successfully"
+        }
+    }
+}

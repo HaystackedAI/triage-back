@@ -54,21 +54,18 @@ class DecisionNode:
 class DecisionTree:
     """Manages the decision tree logic and conversation states, self-contained within main.py."""
     
-    def __init__(self, data_file: str):
+    def __init__(self, data_dict: dict = None):
         self.nodes: Dict[str, DecisionNode] = {}
         self.conversations: Dict[str, ConversationState] = {}
-        self.data_file = data_file
-        self.load_data()
-    
-    def load_data(self):
-        """Load decision tree data from JSON file"""
+        if data_dict:
+            self.load_from_dict(data_dict)
+
+    def load_from_dict(self, data: dict):
+        """Load decision tree data from dictionary"""
         try:
-            with open(self.data_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
             for node_id, node_data in data['nodes'].items():
                 self.nodes[node_id] = DecisionNode(**node_data)
-            
+
             http_logging.info(f"Loaded {len(self.nodes)} decision tree nodes")
         except Exception as e:
             http_logging.error(f"Failed to load decision tree data: {e}")

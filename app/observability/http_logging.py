@@ -57,52 +57,52 @@ def add_http_logging_middleware(app: FastAPI) -> None:
         started_at = time.perf_counter()
         rid = request_seq
 
-        logger.info("===== HTTP %s BEGIN =====", rid)
-        logger.info(
-            "[REQ ] id=%s method=%s path=%s",
-            rid,
-            request.method,
-            request.url.path,
-        )
-        if request.url.query:
-            logger.info("[REQ ] id=%s query=%s", rid, request.url.query)
+        # logger.info("===== HTTP %s BEGIN =====", rid)
+        # logger.info(
+        #     "[REQ ] id=%s method=%s path=%s",
+        #     rid,
+        #     request.method,
+        #     request.url.path,
+        # )
+        # if request.url.query:
+        #     logger.info("[REQ ] id=%s query=%s", rid, request.url.query)
 
         request_body = await request.body()
-        if request_body:
-            content_type = request.headers.get("content-type", "")
-            logger.info(
-                "[REQ ] id=%s body:\n%s",
-                rid,
-                _format_payload(request_body, content_type),
-            )
-        else:
-            logger.info("[REQ ] id=%s body: <empty>", rid)
+        # if request_body:
+        #     content_type = request.headers.get("content-type", "")
+        #     logger.info(
+        #         "[REQ ] id=%s body:\n%s",
+        #         rid,
+        #         _format_payload(request_body, content_type),
+        #     )
+        # else:
+        #     logger.info("[REQ ] id=%s body: <empty>", rid)
 
         try:
             response = await call_next(request)
         except Exception:
             elapsed_ms = (time.perf_counter() - started_at) * 1000
-            logger.exception(
-                "[ERR ] id=%s unhandled_error elapsed_ms=%.2f",
-                rid,
-                elapsed_ms,
-            )
-            logger.info("===== HTTP %s END =====", rid)
+            # logger.exception(
+            #     "[ERR ] id=%s unhandled_error elapsed_ms=%.2f",
+            #     rid,
+            #     elapsed_ms,
+            # )
+            # logger.info("===== HTTP %s END =====", rid)
             raise
 
         content_type = (response.headers.get("content-type") or "").lower()
         is_streaming = isinstance(response, StreamingResponse) or "text/event-stream" in content_type
         if is_streaming:
             elapsed_ms = (time.perf_counter() - started_at) * 1000
-            level = logging.ERROR if response.status_code >= 500 else logging.INFO
-            logger.log(
-                level,
-                "[RESP] id=%s status=%s elapsed_ms=%.2f body=<streaming omitted>",
-                rid,
-                response.status_code,
-                elapsed_ms,
-            )
-            logger.info("===== HTTP %s END =====", rid)
+            # level = logging.ERROR if response.status_code >= 500 else logging.INFO
+            # logger.log(
+            #     level,
+            #     "[RESP] id=%s status=%s elapsed_ms=%.2f body=<streaming omitted>",
+            #     rid,
+            #     response.status_code,
+            #     elapsed_ms,
+            # )
+            # logger.info("===== HTTP %s END =====", rid)
             return response
 
         response_body = b""
@@ -110,17 +110,17 @@ def add_http_logging_middleware(app: FastAPI) -> None:
             response_body += chunk
 
         elapsed_ms = (time.perf_counter() - started_at) * 1000
-        level = logging.ERROR if response.status_code >= 500 else logging.INFO
-        resp_content_type = response.headers.get("content-type", "")
-        logger.log(
-            level,
-            "[RESP] id=%s status=%s elapsed_ms=%.2f body:\n%s",
-            rid,
-            response.status_code,
-            elapsed_ms,
-            _format_payload(response_body, resp_content_type),
-        )
-        logger.info("===== HTTP %s END =====", rid)
+        # level = logging.ERROR if response.status_code >= 500 else logging.INFO
+        # resp_content_type = response.headers.get("content-type", "")
+        # logger.log(
+        #     level,
+        #     "[RESP] id=%s status=%s elapsed_ms=%.2f body:\n%s",
+        #     rid,
+        #     response.status_code,
+        #     elapsed_ms,
+        #     _format_payload(response_body, resp_content_type),
+        # )
+        # logger.info("===== HTTP %s END =====", rid)
         
 
         return Response(
