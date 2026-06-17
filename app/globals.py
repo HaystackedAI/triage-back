@@ -2,7 +2,7 @@ from typing import Dict, List
 from datetime import datetime
 from app.observability import server_logging
 from app.data.decisiontree_type import DecisionTree
-from app.mcps.mcpmanager import mcp_manager
+from app.mcp_conn.mcpmanager import mcp_manager
 # initialized during startup
 decision_tree: DecisionTree | None = None
 

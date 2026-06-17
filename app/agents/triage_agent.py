@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import List, Dict
+import inspect
 
 from strands import Agent
 from strands.models import BedrockModel
 from strands.tools.mcp import MCPClient
 import app.globals as g
-from app.mcps.mcpmanager import mcp_manager
+from app.mcp_conn.mcpmanager import mcp_manager
 from app.observability import server_logging, http_logging
 
 def refresh_tools_cache():
@@ -30,15 +31,17 @@ def get_cached_tools():
 
 def get_or_create_session_agent(session_id: str, model_id: str) -> Agent:
     """Get or create a cached agent for the given session and model"""
+    func_name = inspect.currentframe().f_code.co_name
     agent_key = f"{session_id}:{model_id}"
-    
+    server_logging.add_server_log(func_name, f"Model: {model_id}", level="warning")
+
     if agent_key not in g.session_agents:
         model = BedrockModel(model_id=model_id, temperature=0.7)
         tools = get_cached_tools()
+        server_logging.add_server_log(func_name, f"Tools loaded: {len(tools)} tools available", level="info")
         
         # General purpose prompt. Specific instructions will be provided in each call.
-        system_prompt = """You are a helpful and knowledgeable AI Financial Strategy Assistant specializing in dividend investing.
-                    Your goal is to guide users through building a personalized dividend investment strategy with tax-advantaged accounts.
+        system_prompt = """You are a helpful and knowledgeable person.
                     You must follow the specific instructions given in each prompt precisely.
                     Always provide your response in a clear, conversational, and professional manner.
                     The user-facing response must NOT include any system commands or XML tags unless specifically requested.

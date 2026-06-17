@@ -23,14 +23,16 @@
             "args": [
                 "mcp_servers/calendar/calendar_server.py"
             ],
-            "enabled": true
+            "enabled": false,
+            "note": "Local stdio server - not yet implemented"
         },
         "email_history": {
             "command": "python",
             "args": [
                 "mcp_servers/email_history/email_history_server.py"
             ],
-            "enabled": true
+            "enabled": false,
+            "note": "Local stdio server - not yet implemented"
         }
     }
 }

@@ -26,11 +26,17 @@ async def get_models(): return AVAILABLE_MODELS
 async def chat_endpoint(chat_message: ChatMessage, request: Request):
     """Chat endpoint using Strands Agent with streaming"""
     try:
+        # Default model if not specified or empty
+        DEFAULT_MODEL_ID = "us.amazon.nova-pro-v1:0"
+        if not chat_message.model_id or chat_message.model_id.strip() == "":
+            chat_message.model_id = DEFAULT_MODEL_ID
+            server_logging.add_server_log("user", f"Using default model: {DEFAULT_MODEL_ID}", level="info")
+
         # Check if model is available
         model_ids = [model["id"] for model in AVAILABLE_MODELS]
         if chat_message.model_id not in model_ids: raise HTTPException(status_code=400, detail="Model not available")
         server_logging.add_server_log("user", f"Chat request: {chat_message.message[:50]}...")
-        server_logging.add_server_log("user", f"Model: {chat_message.model_id}", level="warning")
+        server_logging.add_server_log("user", f"Model: {chat_message.model_id}", level="info")
         
 
         # Check if client accepts streaming

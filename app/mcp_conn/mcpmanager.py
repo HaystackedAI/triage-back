@@ -70,6 +70,17 @@ class MCPClientManager:
 
             for server_name, server_config in servers_config.items():
                 try:
+                    # Skip non-stdio transports (e.g., agentcore)
+                    transport = server_config.get("transport", "stdio")
+                    if transport != "stdio":
+                        logger.info(f"Skipping {server_name}: transport={transport} (only stdio supported)")
+                        continue
+
+                    # Check if server has command (required for stdio)
+                    if "command" not in server_config:
+                        logger.warning(f"Skipping {server_name}: no 'command' field (not a stdio server)")
+                        continue
+
                     # Create MCP client using stdio transport (Strands official way)
                     command = server_config.get("command", "python3")
                     args = server_config.get("args", [])

@@ -3,10 +3,10 @@ from typing import List, Dict, Any
 import re
 from datetime import datetime
 from app.observability import server_logging, http_logging
-from app.mcps.mcpmanager import mcp_manager
+from app.mcp_conn.mcpmanager import mcp_manager
 import app.globals as g
 from app.schema.root_schema import ImageData
-from app.agents import get_or_create_session_agent
+from app.agents.triage_agent import get_or_create_session_agent
 
 async def stream_ai_response_with_images(message: str, model_id: str, session_id: str = "default", images: List[ImageData] = None, history: List[Dict[str, Any]] = None):
     """Complete streaming with decision tree, XML processing, and node updates"""
@@ -44,11 +44,11 @@ async def stream_ai_response_with_images(message: str, model_id: str, session_id
         })
         
         with mcp_manager.get_active_context():
-            server_logging.add_server_log("triage", f"MCP CONTEXT ACQUIRED: {session_id}", level="info")
+            server_logging.add_server_log("MCP", f"MCP CONTEXT ACQUIRED: {session_id}", level="info")
             
             agent = get_or_create_session_agent(session_id, model_id)
             
-            server_logging.add_server_log("triage", f"AGENT ACQUIRED: {session_id}", level="info", details={
+            server_logging.add_server_log("Agent", f"AGENT ACQUIRED: {session_id}", level="info", details={
                 "session_id": session_id,
                 "agent_type": type(agent).__name__,
                 "has_tools": hasattr(agent, 'tools'),

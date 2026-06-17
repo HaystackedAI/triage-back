@@ -10,9 +10,9 @@ class ImageData(BaseModel):
 
 class ChatMessage(BaseModel):
     model_config = {"protected_namespaces": ()}
-    
+
     message: str
-    model_id: Optional[str] = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    model_id: Optional[str] = "us.amazon.nova-pro-v1:0"  # Default to Amazon Nova Pro
     session_id: Optional[str] = "default"
     images: Optional[List[ImageData]] = None
     history: Optional[List[Dict[str, Any]]] = None
