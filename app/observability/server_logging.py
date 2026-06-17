@@ -15,8 +15,7 @@ def add_server_log(server_name: str, message: str, level: str = "info", details:
         "details": details or {}
     }
     
-    if server_name not in g.server_logs:
-        g.server_logs[server_name] = []
+    if server_name not in g.server_logs:g.server_logs[server_name] = []
 
     # Prevent duplicate consecutive messages (but allow tool executions)
     if g.server_logs[server_name] and not message.startswith("Executing "):

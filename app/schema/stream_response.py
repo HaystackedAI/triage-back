@@ -12,7 +12,7 @@ async def stream_ai_response_with_images(message: str, model_id: str, session_id
     """Complete streaming with decision tree, XML processing, and node updates"""
 
     try:
-        server_logging.add_server_log("system", f"Processing [{session_id}]: {message[:30]}...")
+        # server_logging.add_server_log("system", f"Processing [{session_id}]: {message[:30]}...")
 
         # Ensure session exists
         if session_id not in g.decision_tree.conversations:

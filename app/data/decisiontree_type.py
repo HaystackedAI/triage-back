@@ -86,7 +86,7 @@ class DecisionTree:
             self.conversations[session_id].current_node_id = node_id
             self.conversations[session_id].last_updated = datetime.now()
             http_logging.logger.info(f"Session {session_id} current node manually set to {node_id}")
-            server_logging.info(f"NODE TRANSITION: {session_id} - {old_node} -> {node_id}", level="info", details={
+            server_logging.add_server_log("triage", f"NODE TRANSITION: {session_id} - {old_node} -> {node_id}", level="info", details={
                 "session_id": session_id,
                 "old_node": old_node,
                 "new_node": node_id,

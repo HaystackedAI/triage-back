@@ -28,8 +28,10 @@ async def chat_endpoint(chat_message: ChatMessage, request: Request):
     try:
         # Check if model is available
         model_ids = [model["id"] for model in AVAILABLE_MODELS]
-        if chat_message.model_id not in model_ids:
-            raise HTTPException(status_code=400, detail="Model not available")
+        if chat_message.model_id not in model_ids: raise HTTPException(status_code=400, detail="Model not available")
+        server_logging.add_server_log("user", f"Chat request: {chat_message.message[:50]}...")
+        server_logging.add_server_log("user", f"Model: {chat_message.model_id}", level="warning")
+        
 
         # Check if client accepts streaming
         accept_header = request.headers.get("accept", "")
