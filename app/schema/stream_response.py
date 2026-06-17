@@ -6,20 +6,13 @@ from app.observability import server_logging, http_logging
 from app.mcps.mcpmanager import mcp_manager
 import app.globals as g
 from app.schema.root_schema import ImageData
-
+from app.agents import get_or_create_session_agent
 
 async def stream_ai_response_with_images(message: str, model_id: str, session_id: str = "default", images: List[ImageData] = None, history: List[Dict[str, Any]] = None):
     """Complete streaming with decision tree, XML processing, and node updates"""
 
     try:
         server_logging.add_server_log("system", f"Processing [{session_id}]: {message[:30]}...")
-
-        # Check if decision tree is initialized
-        if g.decision_tree is None:
-            server_logging.add_server_log("system", "Decision tree not initialized", level="error")
-            yield f"data: {json.dumps({'type': 'content', 'content': 'Decision tree system is not initialized. Please restart the server.'})}\n\n"
-            yield "data: [DONE]\n\n"
-            return
 
         # Ensure session exists
         if session_id not in g.decision_tree.conversations:

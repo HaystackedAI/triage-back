@@ -31,13 +31,9 @@ async def lifespan(app: FastAPI):
         http_logging.logger(f"Failed to initialize MCP servers: {str(e)}")
         server_logging.add_server_log("system", f"Startup MCP init failed: {str(e)}")
 
-    # Initialize decision tree from imported data
-    try:
-        g.decision_tree = DecisionTree(data_dict=DECISION_TREE_DATA)
-        server_logging.add_server_log("system", f"Decision Tree initialized: {len(g.decision_tree.nodes)} nodes loaded", level="info")
-    except Exception as e:
-        server_logging.add_server_log("system", f"Decision Tree initialization failed: {str(e)}", level="error")
-        g.decision_tree = None
+    # Initialize decision tree from imported data - REQUIRED, fail if it doesn't work
+    g.decision_tree = DecisionTree(data_dict=DECISION_TREE_DATA)
+    server_logging.add_server_log("system", f"Decision Tree initialized: {len(g.decision_tree.nodes)} nodes loaded", level="info")
 
     yield
 
