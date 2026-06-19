@@ -21,11 +21,7 @@ def refresh_tools_cache():
         g.cached_tools = []
 
 def get_cached_tools():
-    """Get cached tools, refresh if empty"""
-    
-    if not g.cached_tools:
-        refresh_tools_cache()
-    
+    if not g.cached_tools: refresh_tools_cache()
     return g.cached_tools
 
 
