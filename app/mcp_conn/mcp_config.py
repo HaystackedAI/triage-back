@@ -33,23 +33,5 @@ MCP_SERVERS = {
         "runtime_arn": "arn:aws:bedrock-agentcore:us-east-1:822206589627:runtime/mcp4_Task-nmaGy55hAz",
         "region": "us-east-1",
         "enabled": False
-    },
-    "calendar": {
-        "command": "python",
-        "args": [
-            "app/mcp_local/calendar/calendar_server.py"
-        ],
-        "enabled": True,
-        "transport": "stdio",
-        "description": "Calendar server with date/time and event management tools"
-    },
-    "static": {
-        "command": "python",
-        "args": [
-            "app/mcp_local/static/static.py"
-        ],
-        "enabled": True,
-        "transport": "stdio",
-        "description": "Static response test server with read/write tools"
     }
 }
