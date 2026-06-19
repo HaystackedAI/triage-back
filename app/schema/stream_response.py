@@ -17,19 +17,19 @@ async def stream_ai_response_with_images(message: str, model_id: str, session_id
         # Ensure session exists
         if session_id not in g.decision_tree.conversations:
             g.decision_tree.start_session(session_id, chat_mode=True)
-            server_logging.add_server_log("triage", f"NEW SESSION STARTED: {session_id}", level="info", details={
+            server_logging.add_server_log("triage", f"[DTREE] NEW SESSION STARTED: {session_id}", level="info", details={
                 "session_id": session_id,
                 "initial_node": "start",
                 "timestamp": datetime.now().isoformat()
             })
             # Send initial UI reload signal for left sidebar
             yield f"data: {json.dumps({'type': 'session_started', 'session_id': session_id, 'reload_left_ui': True, 'call_status_api': True})}\n\n"
-        
+
         # Get current node info from decision tree
         state = g.decision_tree.conversations[session_id]
         current_node = g.decision_tree.nodes[state.current_node_id]
-        
-        server_logging.add_server_log("triage", f"PROCESSING MESSAGE: {session_id} at node {current_node.id}", level="info", details={
+
+        server_logging.add_server_log("triage", f"[DTREE] PROCESSING MESSAGE: {session_id} at node {current_node.id}", level="info", details={
             "session_id": session_id,
             "current_node": current_node.id,
             "current_topic": current_node.topic,
@@ -37,18 +37,18 @@ async def stream_ai_response_with_images(message: str, model_id: str, session_id
             "node_children": current_node.children,
             "should_reason": current_node.should_reason
         })
-        
-        server_logging.add_server_log("triage", f"GETTING MCP CONTEXT: {session_id}", level="info", details={
+
+        server_logging.add_server_log("triage", f"[DTREE] GETTING MCP CONTEXT: {session_id}", level="info", details={
             "session_id": session_id,
             "active_clients": mcp_manager.get_active_clients() if hasattr(mcp_manager, 'get_active_clients') else []
         })
-        
+
         with mcp_manager.get_active_context():
             server_logging.add_server_log("MCP", f"MCP CONTEXT ACQUIRED: {session_id}", level="info")
-            
+
             agent = get_or_create_session_agent(session_id, model_id)
-            
-            server_logging.add_server_log("Agent", f"AGENT ACQUIRED: {session_id}", level="info", details={
+
+            server_logging.add_server_log("Agent", f"[AGENT] AGENT ACQUIRED: {session_id}", level="info", details={
                 "session_id": session_id,
                 "agent_type": type(agent).__name__,
                 "has_tools": hasattr(agent, 'tools'),
@@ -187,8 +187,8 @@ Respond with guidance followed by EXACTLY this XML format:
 <g.decision_tree_status next_node="{next_node_candidate}" action="Moving to next assessment step" />{available_options_xml}"""
             
             accumulated_response = ""
-            
-            server_logging.add_server_log("triage", f"STARTING LLM STREAM: {session_id}", level="info", details={
+
+            server_logging.add_server_log("triage", f"[AGENT] STARTING LLM STREAM: {session_id}", level="info", details={
                 "session_id": session_id,
                 "prompt_length": len(unified_prompt),
                 "agent_tools_count": len(agent.tools) if hasattr(agent, 'tools') else 0,
@@ -198,6 +198,7 @@ Respond with guidance followed by EXACTLY this XML format:
             # Simplified Strands streaming - process events as they come
             xml_processed = False
             xml_buffer = ""  # Buffer to handle XML tags split across chunks
+            tools_called = []  # Decision 5: Track tools called for finish logging
             try:
                 async for event in agent.stream_async(unified_prompt):
                     if "data" in event:
@@ -214,7 +215,8 @@ Respond with guidance followed by EXACTLY this XML format:
                                 xml_processed = True
                                 next_node_id = g.decision_tree_match.group(1)
 
-                                server_logging.add_server_log("triage", f"XML DETECTED: {session_id} -> {next_node_id}", level="info")
+                                # Decision 6: Commented out XML DETECTED log
+                                # server_logging.add_server_log("triage", f"[DTREE] XML DETECTED: {session_id} -> {next_node_id}", level="info")
 
                                 if next_node_id in g.decision_tree.nodes:
                                     g.decision_tree.set_current_node(session_id, next_node_id)
@@ -226,21 +228,48 @@ Respond with guidance followed by EXACTLY this XML format:
 
                     elif "current_tool_use" in event and event["current_tool_use"].get("name"):
                         tool_name = event["current_tool_use"]["name"]
+                        tool_input = event["current_tool_use"].get("input", {})
+
+                        # Decision 5: Enhanced tool call logging
+                        server_logging.add_server_log("triage", f"[AGENT] TOOL IDENTIFIED: {tool_name}", level="info", details={
+                            "session_id": session_id,
+                            "tool_name": tool_name,
+                            "tool_input": tool_input,
+                            "timestamp": datetime.now().isoformat()
+                        })
+
                         mcp_server_name = mcp_manager.get_server_for_tool(tool_name)
 
-                        server_logging.add_server_log("triage", f"TOOL CALL: {mcp_server_name} -> {tool_name}", level="warning", details={
+                        server_logging.add_server_log("triage", f"[AGENT] MCP SERVER IDENTIFIED: {mcp_server_name}", level="info", details={
+                            "session_id": session_id,
+                            "mcp_server": mcp_server_name,
+                            "tool_name": tool_name
+                        })
+
+                        server_logging.add_server_log("triage", f"[AGENT] TOOL EXECUTING: {mcp_server_name} -> {tool_name}", level="warning", details={
                             "session_id": session_id,
                             "mcp_server": mcp_server_name,
                             "tool_name": tool_name,
                             "timestamp": datetime.now().isoformat()
                         })
 
+                        # Track for finish logging
+                        tools_called.append(f"{mcp_server_name} -> {tool_name}")
+
                         yield f"data: {json.dumps({'type': 'tool_use', 'tool_name': tool_name, 'mcp_server': mcp_server_name})}\n\n"
 
-                server_logging.add_server_log("triage", f"STREAM COMPLETE: {session_id}", level="info")
+                # Decision 5: Log tool completion summary
+                if tools_called:
+                    server_logging.add_server_log("triage", f"[AGENT] TOOLS FINISHED: {len(tools_called)} tool(s) executed", level="info", details={
+                        "session_id": session_id,
+                        "tools_called": tools_called,
+                        "timestamp": datetime.now().isoformat()
+                    })
+
+                server_logging.add_server_log("triage", f"[AGENT] STREAM COMPLETE: {session_id}", level="info")
 
             except Exception as llm_error:
-                server_logging.add_server_log("triage", f"LLM STREAM ERROR: {session_id} - {str(llm_error)}", level="error")
+                server_logging.add_server_log("triage", f"[AGENT] LLM STREAM ERROR: {session_id} - {str(llm_error)}", level="error")
                 yield f"data: {json.dumps({'type': 'content', 'content': 'An internal error occurred.'})}\n\n"
 
         yield "data: [DONE]\n\n"

@@ -40,37 +40,38 @@ async def get_decision_tree():
 async def get_triage_session_state(session_id: str):
     """Get the current state of a triage session"""
     try:
-        server_logging.add_server_log("triage", f"Session state requested: {session_id}", level="info")
-        
+        # Decision 4: Commented out DT session state logs
+        # server_logging.add_server_log("triage", f"Session state requested: {session_id}", level="info")
+
         if not g.decision_tree:
-            server_logging.add_server_log("triage", "Decision tree not initialized for session request", level="warning")
+            # server_logging.add_server_log("triage", "Decision tree not initialized for session request", level="warning")
             return {"error": "Decision tree not initialized"}
-        
+
         if session_id not in g.decision_tree.conversations:
-            server_logging.add_server_log("triage", f"Session not found: {session_id}", level="info")
+            # server_logging.add_server_log("triage", f"Session not found: {session_id}", level="info")
             return {
                 "session_id": session_id,
                 "exists": False,
                 "message": "Session not found"
             }
-        
+
         session_state = g.decision_tree.conversations[session_id]
         current_node = g.decision_tree.nodes.get(session_state.current_node_id)
-        
+
         if not current_node:
-            server_logging.add_server_log("triage", f"Invalid session state for {session_id}: node {session_state.current_node_id} not found", level="error")
+            # server_logging.add_server_log("triage", f"Invalid session state for {session_id}: node {session_state.current_node_id} not found", level="error")
             raise HTTPException(status_code=500, detail="Invalid session state")
-        
-        server_logging.add_server_log("triage", f"SESSION STATE API: {session_id} at node {current_node.id}", level="info", details={
-            "session_id": session_id,
-            "current_node": current_node.id,
-            "current_topic": current_node.topic,
-            "is_terminal": current_node.is_terminal,
-            "children_count": len(current_node.children),
-            "response_options_count": len(current_node.response_options),
-            "created_at": session_state.created_at.isoformat(),
-            "last_updated": session_state.last_updated.isoformat()
-        })
+
+        # server_logging.add_server_log("triage", f"SESSION STATE API: {session_id} at node {current_node.id}", level="info", details={
+        #     "session_id": session_id,
+        #     "current_node": current_node.id,
+        #     "current_topic": current_node.topic,
+        #     "is_terminal": current_node.is_terminal,
+        #     "children_count": len(current_node.children),
+        #     "response_options_count": len(current_node.response_options),
+        #     "created_at": session_state.created_at.isoformat(),
+        #     "last_updated": session_state.last_updated.isoformat()
+        # })
         
         return {
             "session_id": session_id,

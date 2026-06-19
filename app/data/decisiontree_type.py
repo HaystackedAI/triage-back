@@ -86,19 +86,21 @@ class DecisionTree:
             self.conversations[session_id].current_node_id = node_id
             self.conversations[session_id].last_updated = datetime.now()
             http_logging.logger.info(f"Session {session_id} current node manually set to {node_id}")
-            server_logging.add_server_log("triage", f"NODE TRANSITION: {session_id} - {old_node} -> {node_id}", level="info", details={
-                "session_id": session_id,
-                "old_node": old_node,
-                "new_node": node_id,
-                "timestamp": datetime.now().isoformat()
-            })
+            # Decision 6: Commented out NODE TRANSITION log
+            # server_logging.add_server_log("triage", f"[DTREE] NODE TRANSITION: {session_id} - {old_node} -> {node_id}", level="info", details={
+            #     "session_id": session_id,
+            #     "old_node": old_node,
+            #     "new_node": node_id,
+            #     "timestamp": datetime.now().isoformat()
+            # })
             return True
         http_logging.warning(f"Failed to set node for session {session_id} to {node_id}. Session or node not found.")
-        server_logging.warning(f"NODE TRANSITION FAILED: {session_id} - target: {node_id}", level="warning", details={
-            "session_id": session_id,
-            "target_node": node_id,
-            "session_exists": session_id in self.conversations,
-            "node_exists": node_id in self.nodes
-        })
+        # Decision 6: Commented out NODE TRANSITION FAILED log
+        # server_logging.warning(f"[DTREE] NODE TRANSITION FAILED: {session_id} - target: {node_id}", level="warning", details={
+        #     "session_id": session_id,
+        #     "target_node": node_id,
+        #     "session_exists": session_id in self.conversations,
+        #     "node_exists": node_id in self.nodes
+        # })
         return False
 

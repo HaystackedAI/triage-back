@@ -66,7 +66,7 @@ def get_or_create_session_agent(session_id: str, model_id: str) -> Agent:
         
         agent = Agent(model=model, system_prompt=system_prompt, tools=tools)
         g.session_agents[agent_key] = agent
-        server_logging.add_server_log("system", f"Session agent cached for {session_id}:{model_id}")
+        server_logging.add_server_log("system", f"[AGENT] Session agent cached for {agent_key}")
     
     return g.session_agents[agent_key]
 

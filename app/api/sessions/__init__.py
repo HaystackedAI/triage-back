@@ -17,9 +17,9 @@ async def clear_session(session_id: str):
     # Remove triage session if exists
     if g.decision_tree and session_id in g.decision_tree.conversations:
         del g.decision_tree.conversations[session_id]
-        server_logging.add_server_log("triage", f"Cleared triage session: {session_id}")
-    
-    server_logging.add_server_log("system", f"Cleared session: {session_id}")
+        server_logging.add_server_log("triage", f"[DTREE] Cleared triage session: {session_id}")
+
+    server_logging.add_server_log("system", f"[AGENT] Cleared session: {session_id}")
     return {"message": f"Session {session_id} cleared", "status": "success"}
 
 @rouAcc.get("/sessions")
@@ -45,8 +45,8 @@ async def get_session_history(session_id: str, model_id: str = "us.anthropic.cla
         
         agent_key = f"{session_id}:{model_id}"
         exists = agent_key in g.session_agents
-        
-        server_logging.add_server_log("system", f"Session history request: {session_id} - Found {len(messages)} messages, exists: {exists}")
+
+        server_logging.add_server_log("system", f"[AGENT] Session history request: {session_id} - Found {len(messages)} messages, exists: {exists}")
         
         return {
             "messages": messages,
@@ -57,6 +57,6 @@ async def get_session_history(session_id: str, model_id: str = "us.anthropic.cla
         }
         
     except Exception as e:
-        server_logging.add_server_log("system", f"Error getting session history: {str(e)}")
+        server_logging.add_server_log("system", f"[AGENT] Error getting session history: {str(e)}")
         return {"messages": [], "session_id": session_id, "exists": False, "error": "Failed to retrieve session history"}
 
