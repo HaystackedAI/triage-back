@@ -1,6 +1,4 @@
-import os, sys, json
 import logging
-from pathlib import Path
 from contextlib import asynccontextmanager
 from app.observability import server_logging, http_logging
 from fastapi import FastAPI

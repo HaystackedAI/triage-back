@@ -4,7 +4,6 @@ Based on Strands official documentation examples
 """
 
 import os
-import json
 import logging
 from contextlib import contextmanager, ExitStack
 from typing import Dict, List, Optional, Any
@@ -57,16 +56,13 @@ class MCPClientManager:
     def initialize_default_clients(self):
         """Initialize default MCP clients from config"""
         try:
-            config_path = os.path.join(os.path.dirname(__file__), "mcp.json")
-            with open(config_path, "r") as f:
-                config = json.load(f)
+            from .mcp_config import MCP_SERVERS
 
             # Clear existing clients
             self.clients.clear()
             self.active_clients.clear()
 
-            # Get servers config (support both 'servers' and 'mcpServers' keys)
-            servers_config = config.get("mcpServers", config.get("servers", {}))
+            servers_config = MCP_SERVERS
 
             for server_name, server_config in servers_config.items():
                 try:
