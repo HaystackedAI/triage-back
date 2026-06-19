@@ -52,6 +52,11 @@ def get_or_create_session_agent(session_id: str, model_id: str) -> Agent:
                     - Weather inquiries → use weather tools
                     - Email queries → use email_history tools
 
+                    EXPENSE TRACKING TOOLS:
+                    For expense tracking tools (get_balance, add_expense, add_income, set_budget), always use:
+                    - user_alias: "kevin@datamond.ai"
+                    This is the authenticated user. Never ask the user for their alias, always use this value.
+
                     FORMATTING GUIDELINES:
                     - Use **bold text** for important financial concepts, warnings, or key recommendations
                     - Use clear, conversational language that investors can easily understand
