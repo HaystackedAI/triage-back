@@ -21,8 +21,7 @@ class ToggleRequest(BaseModel):
 async def toggle_mcp_server(server_name: str, request: ToggleRequest):
     """Toggle MCP server enabled/disabled state"""
     
-    if server_name not in g.mcp_servers:
-        raise HTTPException(status_code=404, detail="Server not found")
+    if server_name not in g.mcp_servers: raise HTTPException(status_code=404, detail="Server not found")
     
     enabled = request.enabled
     
