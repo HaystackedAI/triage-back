@@ -1,55 +1,8 @@
 import os,json
 from app.observability import server_logging, http_logging
-from strands.tools.mcp import MCPClient
-from mcp import StdioServerParameters, stdio_client
 import app.globals as g
 
-def setup_mcp_servers():
-    """Setup MCP servers using stdio transport"""
-    
-    for server_name, server_config in g.mcp_servers.items():
-        if not server_config.get("enabled", True):
-            server_logging.add_server_log(server_name, "Server disabled, skipping")
-            continue
-            
-        try:
-            # Prepare command - find available python commandㅂ
-            def find_python_command():
-                import shutil
-                if shutil.which("python"):
-                    return "python"
-                elif shutil.which("python3"):
-                    return "python3"
-                else:
-                    return "python"  # fallback
-            
-            default_python = find_python_command()
-            command = server_config.get("command", default_python)
-            args = server_config.get("args", [])
-            
-            # Build full command
-            full_command = [command] + args
-            
-            server_logging.add_server_log(server_name, f"Setting up MCP server: {' '.join(full_command)}")
-            
-            # Create MCP Client for stdio transport (similar to the example)
-            mcp_client = MCPClient(
-                lambda: stdio_client(
-                    StdioServerParameters(
-                        command=command,
-                        args=args,
-                        cwd=os.path.dirname(__file__)
-                    )
-                )
-            )
-            
-            g.mcp_clients[server_name] = mcp_client
-            g.mcp_servers[server_name]["status"] = "ready"
-            server_logging.add_server_log(server_name, "MCP server ready")
-                
-        except Exception as e:
-            server_logging.add_server_log(server_name, f"Setup error: {str(e)}")
-            g.mcp_servers[server_name]["status"] = "error"
+# setup_mcp_servers() removed - duplicate of mcpmanager.initialize_default_clients()
 
 
 def load_mcp_config():
@@ -118,11 +71,4 @@ def save_mcp_config(servers_config):
 # Load MCP servers from configuration at startup
 load_mcp_config()
 
-def initialize_mcp_servers():
-    """Initialize all MCP servers"""
-    server_logging.add_server_log("system", "Initializing MCP servers...")
-    
-    # Setup MCP servers
-    setup_mcp_servers()
-    
-    server_logging.add_server_log("system", "MCP initialization complete")
+# initialize_mcp_servers() removed - use mcp_manager.initialize_default_clients() instead

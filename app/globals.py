@@ -19,7 +19,6 @@ session_token_usage = {}
 
 # Store server logs
 mcp_servers = {}  # Initialize early to avoid loading issues
-mcp_clients = {}  # Store MCP client instances
 server_logs: Dict[str, List[str]] = {}
     
 def refresh_tools_cache():

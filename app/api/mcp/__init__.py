@@ -57,7 +57,6 @@ async def clear_mcp_logs():
 async def initialize_mcp():
     """Initialize all MCP servers"""
     try:
-        mcp_main.initialize_mcp_servers()
         mcp_manager.initialize_default_clients()
         refresh_agents()  # This will refresh tools cache and clear agents
         return {"message": "MCP servers initialized", "status": "success"}

@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.observability.http_logging import add_http_logging_middleware
 from app.api import rou
-from app.mcp_conn.mcp_main import initialize_mcp_servers
 from app.mcp_conn.mcpmanager import mcp_manager
 from app.data.decisiontree_type import DecisionTree
 from app.data.divtree_data import DECISION_TREE_DATA
@@ -29,7 +28,6 @@ async def lifespan(app: FastAPI):
     server_logging.add_server_log("system", "Server starting up...", level="info")
 
     try:
-        initialize_mcp_servers()
         mcp_manager.initialize_default_clients()
         server_logging.add_server_log("system", "MCP clients initialized", level="info")
 
