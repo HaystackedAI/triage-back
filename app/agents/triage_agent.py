@@ -79,4 +79,4 @@ def refresh_agents():
     
     # Clear agent cache so they get recreated with new tools
     g.session_agents.clear()
-    server_logging.add_server_log("system", "Tools and agent cache refreshed - agents will recreate with new tools", level="info", details={"cleared_sessions": len(session_agents)})
+    server_logging.add_server_log("system", "Tools and agent cache refreshed - agents will recreate with new tools", level="info", details={"cleared_sessions": len(g.session_agents)})
