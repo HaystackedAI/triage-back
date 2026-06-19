@@ -5,9 +5,12 @@ Based on Strands official documentation examples
 
 import os
 import logging
+import boto3
+import httpx
 from contextlib import contextmanager, ExitStack
 from typing import Dict, List, Optional, Any
 from mcp import stdio_client, StdioServerParameters
+from mcp.client.streamable_http import streamable_http_client
 from strands.tools.mcp import MCPClient
 
 logger = logging.getLogger(__name__)
@@ -66,38 +69,87 @@ class MCPClientManager:
 
             for server_name, server_config in servers_config.items():
                 try:
-                    # Skip non-stdio transports (e.g., agentcore)
                     transport = server_config.get("transport", "stdio")
-                    if transport != "stdio":
-                        logger.info(f"Skipping {server_name}: transport={transport} (only stdio supported)")
-                        continue
 
-                    # Check if server has command (required for stdio)
-                    if "command" not in server_config:
-                        logger.warning(f"Skipping {server_name}: no 'command' field (not a stdio server)")
-                        continue
+                    if transport == "stdio":
+                        # Check if server has command (required for stdio)
+                        if "command" not in server_config:
+                            logger.warning(f"Skipping {server_name}: no 'command' field (not a stdio server)")
+                            continue
 
-                    # Create MCP client using stdio transport (Strands official way)
-                    command = server_config.get("command", "python3")
-                    args = server_config.get("args", [])
+                        # Create MCP client using stdio transport
+                        command = server_config.get("command", "python3")
+                        args = server_config.get("args", [])
 
-                    # Create MCPClient with lambda function as per Strands docs
-                    # Set cwd to project root (two levels up from this file)
-                    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+                        # Create MCPClient with lambda function as per Strands docs
+                        # Set cwd to project root (two levels up from this file)
+                        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
-                    mcp_client = MCPClient(
-                        lambda cmd=command, arguments=args, root=project_root: stdio_client(
-                            StdioServerParameters(
-                                command=cmd,
-                                args=arguments,
-                                cwd=root,
-                                env=os.environ,
+                        mcp_client = MCPClient(
+                            lambda cmd=command, arguments=args, root=project_root: stdio_client(
+                                StdioServerParameters(
+                                    command=cmd,
+                                    args=arguments,
+                                    cwd=root,
+                                    env=os.environ,
+                                )
                             )
                         )
-                    )
 
+                    elif transport == "agentcore":
+                        # Create AgentCore HTTP transport MCP client
+                        runtime_name = server_config.get("runtime_name")
+                        region = server_config.get("region", "us-east-1")
 
+                        # Get Cognito credentials
+                        cognito_username = server_config.get("cognito_username")
+                        cognito_password = server_config.get("cognito_password")
+                        cognito_client_id = server_config.get("cognito_client_id")
 
+                        if not all([runtime_name, cognito_username, cognito_password, cognito_client_id]):
+                            logger.warning(f"Skipping {server_name}: missing AgentCore config fields")
+                            continue
+
+                        # Get bearer token from Cognito
+                        try:
+                            cognito_client = boto3.client("cognito-idp", region_name=region)
+                            auth_response = cognito_client.initiate_auth(
+                                ClientId=cognito_client_id,
+                                AuthFlow="USER_PASSWORD_AUTH",
+                                AuthParameters={
+                                    "USERNAME": cognito_username,
+                                    "PASSWORD": cognito_password,
+                                },
+                            )
+                            bearer_token = auth_response["AuthenticationResult"]["AccessToken"]
+                            logger.info(f"AgentCore auth successful for {server_name}")
+                        except Exception as e:
+                            logger.error(f"AgentCore auth failed for {server_name}: {str(e)}")
+                            continue
+
+                        # Build MCP URL
+                        sts = boto3.client("sts")
+                        account_id = sts.get_caller_identity()["Account"]
+                        mcp_url = f"https://bedrock-agentcore.{region}.amazonaws.com/runtimes/{runtime_name}/invocations?qualifier=DEFAULT&accountId={account_id}"
+
+                        # Create transport factory with captured variables
+                        def create_agentcore_transport(url=mcp_url, token=bearer_token):
+                            headers = {
+                                "authorization": f"Bearer {token}",
+                                "Content-Type": "application/json",
+                            }
+                            http_client = httpx.AsyncClient(headers=headers, timeout=120.0)
+                            return streamable_http_client(
+                                url,
+                                http_client=http_client,
+                                terminate_on_close=False
+                            )
+
+                        mcp_client = MCPClient(create_agentcore_transport)
+
+                    else:
+                        logger.warning(f"Skipping {server_name}: unknown transport '{transport}'")
+                        continue
 
                     self.add_client(server_name, mcp_client)
 
@@ -107,7 +159,7 @@ class MCPClientManager:
                         self.active_clients.remove(server_name)
 
                     logger.info(
-                        f"Initialized MCP client: {server_name} (enabled: {enabled})"
+                        f"Initialized MCP client: {server_name} (transport={transport}, enabled={enabled})"
                     )
 
                 except Exception as e:
