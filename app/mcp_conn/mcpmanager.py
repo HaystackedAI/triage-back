@@ -96,6 +96,9 @@ class MCPClientManager:
                         )
                     )
 
+
+
+
                     self.add_client(server_name, mcp_client)
 
                     # Set active state based on config
