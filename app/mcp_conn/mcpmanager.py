@@ -19,6 +19,7 @@ class MCPClientManager:
     def __init__(self):
         self.clients: Dict[str, MCPClient] = {}
         self.active_clients: List[str] = []
+        self.tool_to_server: Dict[str, str] = {}  # Map tool_name -> server_name
 
     def add_client(self, name: str, client: MCPClient):
         """Add an MCP client"""
@@ -76,6 +77,13 @@ class MCPClientManager:
 
                     # Create AgentCore HTTP transport MCP client
                     runtime_name = server_config.get("runtime_name")
+                    runtime_arn = server_config.get("runtime_arn")
+
+                    # Extract runtime name from ARN if provided
+                    if not runtime_name and runtime_arn:
+                        # ARN format: arn:aws:bedrock-agentcore:region:account:runtime/NAME
+                        runtime_name = runtime_arn.split("/")[-1]
+
                     region = server_config.get("region", "us-east-1")
 
                     # Get Cognito credentials
@@ -146,6 +154,7 @@ class MCPClientManager:
     def get_all_tools(self, active_only: bool = True) -> List[Any]:
         """Get all tools from active MCP clients"""
         all_tools = []
+        self.tool_to_server.clear()  # Reset mapping
 
         clients_to_use = (
             self.active_clients if active_only else list(self.clients.keys())
@@ -162,12 +171,21 @@ class MCPClientManager:
                 with client:
                     tools = client.list_tools_sync()
                     if tools:
+                        # Map each tool to its server
+                        for tool in tools:
+                            tool_name = getattr(tool, 'tool_name', getattr(tool, 'name', str(type(tool).__name__)))
+                            self.tool_to_server[tool_name] = client_name
+
                         all_tools.extend(tools)
                         logger.info(f"Loaded {len(tools)} tools from {client_name}")
             except Exception as e:
                 logger.error(f"Error loading tools from {client_name}: {str(e)}")
 
         return all_tools
+
+    def get_server_for_tool(self, tool_name: str) -> Optional[str]:
+        """Get the server name that provides a given tool"""
+        return self.tool_to_server.get(tool_name, "unknown")
 
     @contextmanager
     def get_active_context(self):
